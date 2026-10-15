@@ -1,0 +1,21 @@
+MUMBAI WORKSHOP — DEPLOYMENT AND TRACKING NOTES
+
+Source: user-provided Mumbai index.html (preserved content, artwork and existing links).
+Meta Pixel ID: 582955268888858 from uploaded Mumbai PDF.
+Mumbai payment checkout link is the ORIGINAL https://rzp.io/l/8WLl29j (unchanged).
+Pixel PageView added to landing and Thank You page.
+
+IMPORTANT: The PDF proposes a Purchase event for INR 1,500. That event is NOT enabled on the public Thank You page because its URL can be opened without payment. This prevents false conversions. To report real purchases, payment must be verified server-side by Razorpay webhook/API and sent to Meta (with deduplication) only for a verified payment.
+
+The form in the original file stores contact details only in sessionStorage in the visitor's browser. It does not automatically save registrations to your business. Fix this with a proper form backend before treating the site as a complete registration solution.
+
+Thank You URL when deployed at site root: https://YOUR-MUMBAI-DOMAIN/thank-you/
+This page is a simple registration thank-you design, NOT a verified payment receipt.
+
+Do not configure Razorpay to redirect users to the Thank You page expecting it to prove a payment, and do not use Thank You PageView as the Purchase conversion.
+
+To finish the live paid-registration integration, confirm the Mumbai Razorpay Payment Page account and link, verify price INR 1,500 is correct, implement server-side payment verification and persistent registration storage, configure successful-payment handling, then verify Meta Purchase in Events Manager.
+
+This package is ready for static deployment but payment verification / Purchase attribution is not yet complete.
+
+Confirmed by user: Mumbai workshop registration fee is INR 1,500. The full-course amounts elsewhere in original page are separate and unchanged. Original external Razorpay link remains untouched; its live checkout amount must be checked manually before publishing.
