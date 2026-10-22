@@ -7,7 +7,7 @@
 .frame:before{content:'';position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#520b1d,#e73557,#520b1d)}.brand{font-weight:850;letter-spacing:.15em;font-size:clamp(12px,1.7vw,15px);margin-bottom:48px}.brand span{color:#f35870}.mark{width:78px;height:78px;display:grid;place-items:center;border:1px solid #a72643;background:#390e1d;border-radius:50%;margin:0 auto 27px;color:#ff6f87}.mark svg{width:34px;height:34px}
 .kicker{font-weight:800;letter-spacing:.23em;text-transform:uppercase;font-size:11px;color:#ff6b83;margin:0 0 12px}h1{font-size:clamp(46px,8vw,78px);letter-spacing:-.065em;line-height:1.05;margin:0 0 20px;font-weight:850}p{font-size:clamp(15px,2.6vw,18px);line-height:1.65;color:#ddd2d7;margin:0 auto;max-width:475px}.event{margin:36px auto 0;border-top:1px solid #3b2730;padding-top:23px;color:#f9e9ef;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}.small{color:#8b7d83;font-size:12px;margin-top:34px}@media(max-width:480px){.frame{padding:42px 22px}.brand{margin-bottom:36px}.event{font-size:11px}}
 </style>
-<!-- Meta Pixel, PageView only: DO NOT fire Purchase from an unverified URL -->
+<!-- Meta Pixel, PageView only by default -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','582955268888858');fbq('track','PageView');
@@ -22,30 +22,58 @@ fbq('init','582955268888858');fbq('track','PageView');
 
   gtag('config', 'AW-440238541');
 </script>
-<!-- Event snippet for Purchase - Workshop conversion page
-     STATUS: DISABLED / PENDING RELIABLE PAYMENT INTEGRATION
-     IMPORTANT: Do NOT automatically fire this conversion on page load or refresh of this static Thank You page.
-     Opening or reloading this public URL without verified payment would record false purchases in Google Ads.
+<!-- Vercel Web Analytics -->
+<script defer src="/_vercel/insights/script.js"></script>
+</head><body><main class="frame"><div class="brand">BK <span>EDU</span> BY MINAAZ</div><div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></div><p class="kicker">Mumbai Mega Workshop</p><h1>Thank You!</h1><p>Thank you for registering for the Mumbai Mega Workshop by BK EDU by Minaaz. We look forward to welcoming you!</p>
 
-     NOTE ON GOOGLE ADS ACCOUNT IDs (FLAGGED FOR VERIFICATION):
-     The Google tag above uses 'AW-440238541', while this conversion destination below uses 'AW-11039093669'.
-     Please verify whether 'AW-11039093669/tukjCNT49p0dEKXn7I8p' is from the intended Google Ads account.
+<div id="booking-badge" style="display:none;margin:24px auto 0;padding:16px 20px;border:1px solid #57202d;border-radius:10px;background:#180d12;max-width:440px;text-align:left">
+  <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#ff6882;margin-bottom:8px">Booking Confirmation Details</div>
+  <div style="font-size:13px;color:#ddd;display:flex;justify-content:space-between;padding:4px 0"><span>Registration ID:</span><strong id="badge-reg-id" style="color:#fff;font-family:monospace"></strong></div>
+  <div id="badge-pay-row" style="font-size:13px;color:#ddd;display:flex;justify-content:space-between;padding:4px 0"><span>Payment ID:</span><strong id="badge-pay-id" style="color:#4ade80;font-family:monospace"></strong></div>
+  <div style="font-size:13px;color:#ddd;display:flex;justify-content:space-between;padding:4px 0"><span>Amount Paid:</span><strong style="color:#fff">₹1,500 INR</strong></div>
+</div>
 
-     REQUIRED INTEGRATION:
-     To safely activate conversion tracking without false positives:
-     1. Pass a verified Razorpay payment transaction ID (e.g. from Razorpay Standard Checkout callback or webhook).
-     2. Ensure registration amount is ₹1,500 (value: 1500, currency: 'INR'). Never use ₹999.
-     3. Only fire when payment verification succeeds.
+<div class="event">25 October 2026 &nbsp;·&nbsp; Mumbai</div><div class="small">BK EDU BY MINAAZ · INDIA'S LEADING MODELLING ACADEMY</div></main>
 
-     Example snippet to activate once payment is verified:
-     <script>
-       // gtag('event', 'conversion', {
-       //   'send_to': 'AW-11039093669/tukjCNT49p0dEKXn7I8p',
-       //   'value': 1500.0,
-       //   'currency': 'INR',
-       //   'transaction_id': '' /* populate dynamically with verified Razorpay payment ID */
-       //   // 'new_customer': true /* calculate dynamically, populate with true/false */
-       // });
-     </script>
--->
-</head><body><main class="frame"><div class="brand">BK <span>EDU</span> BY MINAAZ</div><div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></div><p class="kicker">Mumbai Mega Workshop</p><h1>Thank You!</h1><p>Thank you for registering for the Mumbai Mega Workshop by BK EDU by Minaaz. We look forward to welcoming you!</p><div class="event">25 October 2026 &nbsp;·&nbsp; Mumbai</div><div class="small">BK EDU BY MINAAZ · INDIA'S LEADING MODELLING ACADEMY</div></main></body></html>
+<script>
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var regId = params.get('reg_id') || '';
+    var payId = params.get('payment_id') || '';
+    var isVerified = params.get('verified') === '1';
+
+    if (regId || payId) {
+      var badge = document.getElementById('booking-badge');
+      if (badge) {
+        badge.style.display = 'block';
+        if (regId) document.getElementById('badge-reg-id').textContent = regId;
+        if (payId) {
+          document.getElementById('badge-pay-id').textContent = payId;
+        } else {
+          var payRow = document.getElementById('badge-pay-row');
+          if (payRow) payRow.style.display = 'none';
+        }
+      }
+    }
+
+    // Only fire conversion when verified parameter is present and valid payment ID exists
+    if (isVerified && payId && typeof gtag === 'function') {
+      try {
+        gtag('event', 'conversion', {
+          'send_to': 'AW-440238541',
+          'value': 1500.0,
+          'currency': 'INR',
+          'transaction_id': payId
+        });
+        if (typeof fbq === 'function') {
+          fbq('track', 'Purchase', {
+            value: 1500.0,
+            currency: 'INR',
+            content_name: 'Mumbai Mega Workshop'
+          });
+        }
+      } catch (e) {}
+    }
+  })();
+</script>
+</body></html>

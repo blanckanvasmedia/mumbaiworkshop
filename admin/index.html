@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="theme-color" content="#080808"/>
+  <title>Admin Dashboard | BK EDU by Minaaz — Mumbai Workshop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: #141215;
+      --card-border: #2c2127;
+      --accent-red: #d31c3c;
+      --accent-hover: #fa2b4f;
+      --text: #f4f4f5;
+      --text-muted: #a19ba0;
+      --status-paid-bg: rgba(34, 197, 94, 0.15);
+      --status-paid-text: #4ade80;
+      --status-paid-border: rgba(34, 197, 94, 0.35);
+      --status-pending-bg: rgba(234, 179, 8, 0.15);
+      --status-pending-text: #facc15;
+      --status-pending-border: rgba(234, 179, 8, 0.35);
+      --status-failed-bg: rgba(239, 68, 68, 0.15);
+      --status-failed-text: #f87171;
+      --status-failed-border: rgba(239, 68, 68, 0.35);
+      --status-refund-bg: rgba(168, 85, 247, 0.15);
+      --status-refund-text: #c084fc;
+      --status-refund-border: rgba(168, 85, 247, 0.35);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Header */
+    header {
+      background: #0d0a0d;
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(8px);
+    }
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-tag {
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .brand-tag span { color: var(--accent-red); }
+    .badge-sub {
+      background: #2a1118;
+      border: 1px solid #751d32;
+      color: #ff6882;
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: .05em;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #1f181c;
+      border: 1px solid #4a333e;
+      color: var(--text);
+      padding: 9px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn:hover { background: #2d2027; border-color: #6d4757; }
+    .btn-primary {
+      background: var(--accent-red);
+      border-color: var(--accent-red);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    /* Layout */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 24px 60px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* KPI Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .15s, border-color .15s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: #553442;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--card-border);
+    }
+    .stat-card.card-primary::before { background: var(--accent-red); }
+    .stat-card.card-paid::before { background: #22c55e; }
+    .stat-card.card-pending::before { background: #eab308; }
+    .stat-card.card-failed::before { background: #ef4444; }
+    .stat-card.card-rev::before { background: linear-gradient(90deg, #d31c3c, #fb7185); }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* Controls Bar */
+    .controls-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .filters-left {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      flex: 1;
+      min-width: 280px;
+    }
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+      max-width: 360px;
+    }
+    .search-box input {
+      width: 100%;
+      background: #09090b;
+      border: 1px solid #3c2933;
+      border-radius: 6px;
+      padding: 9px 12px 9px 34px;
+      color: #fff;
+      font-size: 13px;
+    }
+    .search-box input:focus {
+      outline: 2px solid var(--accent-red);
+      border-color: transparent;
+    }
+    .search-box svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .filter-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    select, input[type="date"] {
+      background: #09090b;
+      border: 1px solid #3c2933;
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 13px;
+    }
+    select:focus, input[type="date"]:focus {
+      outline: 2px solid var(--accent-red);
+      border-color: transparent;
+    }
+    .filters-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* Table Container */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    th {
+      background: #110e11;
+      padding: 14px 18px;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--card-border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid #20171d;
+      color: #e5e5e7;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    .name-col strong { display: block; color: #fff; font-size: 14px; }
+    .name-col .reg-id { font-size: 11px; color: #ff6882; font-family: monospace; letter-spacing: .05em; margin-top: 2px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      border: 1px solid transparent;
+      text-transform: uppercase;
+    }
+    .badge-paid {
+      background: var(--status-paid-bg);
+      color: var(--status-paid-text);
+      border-color: var(--status-paid-border);
+    }
+    .badge-pending {
+      background: var(--status-pending-bg);
+      color: var(--status-pending-text);
+      border-color: var(--status-pending-border);
+    }
+    .badge-failed {
+      background: var(--status-failed-bg);
+      color: var(--status-failed-text);
+      border-color: var(--status-failed-border);
+    }
+    .badge-refunded {
+      background: var(--status-refund-bg);
+      color: var(--status-refund-text);
+      border-color: var(--status-refund-border);
+    }
+
+    .payment-id-code {
+      font-family: monospace;
+      color: #cbd5e1;
+      background: #09090b;
+      padding: 3px 7px;
+      border-radius: 4px;
+      border: 1px solid #2f252d;
+      font-size: 12px;
+    }
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .empty-state svg {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 12px;
+      color: #55444e;
+    }
+
+    /* Modal / Auth Dialog */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .auth-card {
+      background: #141114;
+      border: 1px solid #622233;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 420px;
+      padding: 34px 28px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #780c22, #fa2b4f, #780c22);
+      border-radius: 12px 12px 0 0;
+    }
+    .auth-card h2 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+    .auth-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .auth-input {
+      width: 100%;
+      background: #080808;
+      border: 1px solid #4a323d;
+      border-radius: 6px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+    .auth-input:focus {
+      outline: 2px solid var(--accent-red);
+      border-color: transparent;
+    }
+    .auth-card .btn-primary { width: 100%; padding: 12px; font-size: 14px; }
+    .auth-error {
+      color: #fa4058;
+      font-size: 12px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* Details Drawer Modal */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 90;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .drawer-overlay.open { display: flex; }
+    .drawer-card {
+      background: #141114;
+      border: 1px solid #553442;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 26px;
+      position: relative;
+    }
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2f2028;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+    .drawer-close {
+      background: transparent;
+      border: 0;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .detail-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #20171d;
+      font-size: 13px;
+    }
+    .detail-row:last-child { border-bottom: 0; }
+    .detail-label {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .detail-val {
+      color: #fff;
+      word-break: break-all;
+    }
+
+    @media (max-width: 768px) {
+      .header-inner { flex-direction: column; align-items: flex-start; }
+      .header-actions { width: 100%; justify-content: space-between; }
+      .controls-card { flex-direction: column; align-items: stretch; }
+      .filters-left { flex-direction: column; align-items: stretch; }
+      .search-box { max-width: 100%; }
+      .filters-right { justify-content: space-between; }
+      .detail-row { grid-template-columns: 1fr; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <div class="brand-wrap">
+        <div class="brand-tag">BK <span>EDU</span> BY MINAAZ</div>
+        <span class="badge-sub">Admin Dashboard</span>
+      </div>
+      <div class="header-actions">
+        <a href="/" target="_blank" class="btn btn-sm">View Landing Page ↗</a>
+        <button id="btn-export-csv" class="btn btn-sm btn-primary" onclick="exportCsv()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+        <button id="btn-logout" class="btn btn-sm" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 6 KPI Stat Cards -->
+    <div class="stats-grid">
+      <div class="stat-card card-primary">
+        <div class="stat-label">Total Submissions</div>
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-sub">Form registrations</div>
+      </div>
+      <div class="stat-card card-paid">
+        <div class="stat-label">Paid Registrations</div>
+        <div class="stat-value" id="stat-paid">0</div>
+        <div class="stat-sub">Verified payments</div>
+      </div>
+      <div class="stat-card card-pending">
+        <div class="stat-label">Pending / Unpaid</div>
+        <div class="stat-value" id="stat-pending">0</div>
+        <div class="stat-sub">Form filled, no payment yet</div>
+      </div>
+      <div class="stat-card card-failed">
+        <div class="stat-label">Failed Payments</div>
+        <div class="stat-value" id="stat-failed">0</div>
+        <div class="stat-sub">Payment gateway failures</div>
+      </div>
+      <div class="stat-card card-rev">
+        <div class="stat-label">Confirmed Revenue</div>
+        <div class="stat-value" id="stat-revenue">₹0</div>
+        <div class="stat-sub">₹1,500 per confirmed student</div>
+      </div>
+      <div class="stat-card card-primary">
+        <div class="stat-label">Conversion Rate</div>
+        <div class="stat-value" id="stat-conversion">0%</div>
+        <div class="stat-sub">Registrations → Paid</div>
+      </div>
+    </div>
+
+    <!-- Filter & Search Controls Bar -->
+    <div class="controls-card">
+      <div class="filters-left">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-input" placeholder="Search by name, email, phone, reg ID..." oninput="debounceLoad()"/>
+        </div>
+
+        <div class="filter-group">
+          <label for="status-filter">Status:</label>
+          <select id="status-filter" onchange="loadData()">
+            <option value="All">All Statuses</option>
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+            <option value="Failed">Failed</option>
+            <option value="Refunded">Refunded</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="date-start">From:</label>
+          <input type="date" id="date-start" onchange="loadData()"/>
+        </div>
+
+        <div class="filter-group">
+          <label for="date-end">To:</label>
+          <input type="date" id="date-end" onchange="loadData()"/>
+        </div>
+      </div>
+
+      <div class="filters-right">
+        <button class="btn btn-sm" onclick="clearFilters()">Reset Filters</button>
+        <button class="btn btn-sm" onclick="loadData()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Student Details</th>
+              <th>Email</th>
+              <th>WhatsApp / Phone</th>
+              <th>Registered On</th>
+              <th>Payment Status</th>
+              <th>Payment ID</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="registrations-body">
+            <tr>
+              <td colspan="7" class="empty-state">Loading registrations...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Details Drawer Modal -->
+  <div class="drawer-overlay" id="detail-drawer" onclick="if(event.target===this)closeDetails()">
+    <div class="drawer-card">
+      <div class="drawer-header">
+        <h3 id="drawer-title" style="font-size:17px;font-weight:700">Registration Details</h3>
+        <button class="drawer-close" onclick="closeDetails()">×</button>
+      </div>
+      <div id="drawer-content"></div>
+    </div>
+  </div>
+
+  <!-- Password Protected Login Modal -->
+  <div class="auth-overlay" id="auth-modal" style="display:none">
+    <div class="auth-card">
+      <div style="font-size: 32px; margin-bottom: 12px">🔒</div>
+      <h2>BK EDU Administrator</h2>
+      <p>Enter the administrator password to access registration and payment tracking.</p>
+      <form onsubmit="handleLogin(event)">
+        <input type="password" id="admin-password" class="auth-input" placeholder="Admin Password" required autofocus/>
+        <button type="submit" id="btn-login-submit" class="btn btn-primary">Unlock Dashboard</button>
+        <div id="auth-error-msg" class="auth-error">Incorrect password. Please try again.</div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let authToken = localStorage.getItem('bk_admin_token') || '';
+    let debounceTimer = null;
+    let currentRegistrations = [];
+
+    // On Load
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!authToken) {
+        showAuthModal();
+      } else {
+        loadData();
+      }
+    });
+
+    function showAuthModal() {
+      document.getElementById('auth-modal').style.display = 'flex';
+      document.getElementById('admin-password').focus();
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const pwInput = document.getElementById('admin-password');
+      const errBox = document.getElementById('auth-error-msg');
+      const btn = document.getElementById('btn-login-submit');
+      errBox.style.display = 'none';
+      btn.textContent = 'Verifying...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pwInput.value })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.token) {
+          authToken = data.token;
+          localStorage.setItem('bk_admin_token', authToken);
+          document.getElementById('auth-modal').style.display = 'none';
+          pwInput.value = '';
+          loadData();
+        } else {
+          errBox.textContent = data.error || 'Authentication failed. Please verify password.';
+          errBox.style.display = 'block';
+        }
+      } catch (err) {
+        errBox.textContent = 'Server connection error: ' + err.message;
+        errBox.style.display = 'block';
+      } finally {
+        btn.textContent = 'Unlock Dashboard';
+        btn.disabled = false;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('bk_admin_token');
+      authToken = '';
+      showAuthModal();
+    }
+
+    function debounceLoad() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => loadData(), 300);
+    }
+
+    function clearFilters() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('status-filter').value = 'All';
+      document.getElementById('date-start').value = '';
+      document.getElementById('date-end').value = '';
+      loadData();
+    }
+
+    async function loadData() {
+      if (!authToken) return;
+      await Promise.all([loadStats(), loadRegistrations()]);
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/admin/stats', {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.status === 401) { logout(); return; }
+        const data = await res.json();
+        if (data.success && data.stats) {
+          const s = data.stats;
+          document.getElementById('stat-total').textContent = Number(s.totalSubmissions).toLocaleString();
+          document.getElementById('stat-paid').textContent = Number(s.paidCount).toLocaleString();
+          document.getElementById('stat-pending').textContent = Number(s.pendingCount).toLocaleString();
+          document.getElementById('stat-failed').textContent = Number(s.failedCount).toLocaleString();
+          document.getElementById('stat-revenue').textContent = '₹' + Number(s.confirmedRevenue).toLocaleString('en-IN');
+          document.getElementById('stat-conversion').textContent = s.conversionRate + '%';
+        }
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+      }
+    }
+
+    async function loadRegistrations() {
+      const tbody = document.getElementById('registrations-body');
+      const search = document.getElementById('search-input').value;
+      const status = document.getElementById('status-filter').value;
+      const startDate = document.getElementById('date-start').value;
+      const endDate = document.getElementById('date-end').value;
+
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (status !== 'All') params.append('status', status);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      try {
+        const res = await fetch(`/api/admin/registrations?${params.toString()}`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.status === 401) { logout(); return; }
+        const data = await res.json();
+
+        if (data.success) {
+          currentRegistrations = data.registrations || [];
+          renderTable(currentRegistrations);
+        } else {
+          tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:#ef4444">${escapeHtml(data.error || 'Failed to load')}</td></tr>`;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:#ef4444">Error connecting to serverless API. Check console.</td></tr>`;
+      }
+    }
+
+    function renderTable(regs) {
+      const tbody = document.getElementById('registrations-body');
+      if (!regs || regs.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              <div>No matching registrations found.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = regs.map((r, idx) => {
+        const dateStr = formatDateTime(r.created_at);
+        const statusBadge = getStatusBadge(r.payment_status);
+        const paymentIdHtml = r.razorpay_payment_id
+          ? `<span class="payment-id-code">${escapeHtml(r.razorpay_payment_id)}</span>`
+          : '<span style="color:var(--text-muted)">—</span>';
+
+        return `
+          <tr>
+            <td class="name-col">
+              <strong>${escapeHtml(r.full_name)}</strong>
+              <div class="reg-id">${escapeHtml(r.registration_id || '—')}</div>
+            </td>
+            <td><a href="mailto:${escapeHtml(r.email)}" style="color:#93c5fd;text-decoration:none">${escapeHtml(r.email)}</a></td>
+            <td><a href="tel:${escapeHtml(r.phone)}" style="color:#e5e5e7;text-decoration:none">${escapeHtml(r.phone)}</a></td>
+            <td>${dateStr}</td>
+            <td>${statusBadge}</td>
+            <td>${paymentIdHtml}</td>
+            <td>
+              <button class="btn btn-sm" onclick="showDetails(${idx})">View</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function getStatusBadge(status) {
+      if (status === 'Paid') return `<span class="badge badge-paid">● Paid</span>`;
+      if (status === 'Pending') return `<span class="badge badge-pending">○ Pending</span>`;
+      if (status === 'Failed') return `<span class="badge badge-failed">✕ Failed</span>`;
+      if (status === 'Refunded') return `<span class="badge badge-refunded">↺ Refunded</span>`;
+      return `<span class="badge">${escapeHtml(status || 'Pending')}</span>`;
+    }
+
+    function formatDateTime(iso) {
+      if (!iso) return '—';
+      try {
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+      } catch (e) {
+        return iso;
+      }
+    }
+
+    function showDetails(idx) {
+      const r = currentRegistrations[idx];
+      if (!r) return;
+
+      document.getElementById('drawer-title').textContent = `${r.full_name} (${r.registration_id})`;
+      const rows = [
+        ['Registration ID', r.registration_id],
+        ['Full Name', r.full_name],
+        ['Email', `<a href="mailto:${escapeHtml(r.email)}" style="color:#93c5fd">${escapeHtml(r.email)}</a>`],
+        ['WhatsApp / Phone', `<a href="tel:${escapeHtml(r.phone)}" style="color:#fff">${escapeHtml(r.phone)}</a>`],
+        ['City', r.city || '—'],
+        ['Payment Status', getStatusBadge(r.payment_status)],
+        ['Amount', `₹${r.amount || 1500} ${r.currency || 'INR'}`],
+        ['Razorpay Payment ID', r.razorpay_payment_id || 'None'],
+        ['Razorpay Order ID', r.razorpay_order_id || 'None'],
+        ['Registered On', formatDateTime(r.created_at)],
+        ['Campaign Source (utm_source)', r.utm_source || '—'],
+        ['Medium (utm_medium)', r.utm_medium || '—'],
+        ['Campaign (utm_campaign)', r.utm_campaign || '—'],
+        ['Term (utm_term)', r.utm_term || '—'],
+        ['Content (utm_content)', r.utm_content || '—'],
+        ['Referrer', r.referrer || 'Direct / None']
+      ];
+
+      document.getElementById('drawer-content').innerHTML = rows.map(([label, val]) => `
+        <div class="detail-row">
+          <div class="detail-label">${label}</div>
+          <div class="detail-val">${val}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('detail-drawer').classList.add('open');
+    }
+
+    function closeDetails() {
+      document.getElementById('detail-drawer').classList.remove('open');
+    }
+
+    function exportCsv() {
+      const search = document.getElementById('search-input').value;
+      const status = document.getElementById('status-filter').value;
+      const startDate = document.getElementById('date-start').value;
+      const endDate = document.getElementById('date-end').value;
+
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (status !== 'All') params.append('status', status);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      // Fetch with auth header and trigger download
+      fetch(`/api/admin/export?${params.toString()}`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Export failed');
+        return res.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `bk-edu-registrations-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(err => alert('Failed to export CSV: ' + err.message));
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>

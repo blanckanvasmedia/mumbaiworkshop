@@ -1,0 +1,12 @@
+{
+  "name": "bk-edu-mumbai-workshop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BK EDU by Minaaz Mumbai Mega Workshop Registration & Payment Tracking System",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.0"
+  }
+}
