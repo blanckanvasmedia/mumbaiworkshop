@@ -1,8 +1,9 @@
 // ==============================================================================
 // BK EDU by Minaaz — API: Admin Dashboard Statistics
 // Endpoint: GET /api/admin/stats
+// Storage: Vercel Private Blob Store
 // ==============================================================================
-const { getSupabase, requireAdminAuth } = require('../_utils');
+const { listAllRegistrations, requireAdminAuth } = require('../_utils');
 
 module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') {
@@ -18,17 +19,7 @@ module.exports = async function handler(req, res) {
   if (!requireAdminAuth(req, res)) return;
 
   try {
-    const supabase = getSupabase();
-
-    // Query all registrations with relevant columns
-    const { data: rows, error } = await supabase
-      .from('registrations')
-      .select('payment_status, amount');
-
-    if (error) {
-      console.error('Failed to fetch stats:', error);
-      return res.status(500).json({ error: 'Failed to load statistics: ' + error.message });
-    }
+    const rows = await listAllRegistrations();
 
     const totalSubmissions = rows.length;
     let paidCount = 0;

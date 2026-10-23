@@ -1,8 +1,15 @@
 // ==============================================================================
 // BK EDU by Minaaz — API: Razorpay Webhook Handler
 // Endpoint: POST /api/webhook
+// Storage: Vercel Private Blob Store
 // ==============================================================================
-const { getSupabase, verifyWebhookSignature } = require('./_utils');
+const {
+  getRegistrationById,
+  findRegistrationByOrderId,
+  findRegistrationByPaymentId,
+  updateRegistration,
+  verifyWebhookSignature
+} = require('./_utils');
 
 // Helper to buffer the raw body for signature verification in Node/Vercel
 async function getRawBody(req) {
@@ -49,7 +56,6 @@ module.exports = async function handler(req, res) {
     const eventType = eventData.event;
     console.log(`Razorpay webhook received: ${eventType}`);
 
-    const supabase = getSupabase();
     const payload = eventData.payload || {};
     const paymentEntity = payload.payment ? payload.payment.entity : null;
     const orderEntity = payload.order ? payload.order.entity : null;
@@ -62,36 +68,17 @@ module.exports = async function handler(req, res) {
       || (orderEntity && orderEntity.notes && orderEntity.notes.registration_id)
       || null;
 
-    // Helper to find registration
-    async function findRegistration() {
-      if (regIdFromNotes) {
-        const { data } = await supabase
-          .from('registrations')
-          .select('*')
-          .eq('registration_id', regIdFromNotes)
-          .maybeSingle();
-        if (data) return data;
-      }
-      if (orderId) {
-        const { data } = await supabase
-          .from('registrations')
-          .select('*')
-          .eq('razorpay_order_id', orderId)
-          .maybeSingle();
-        if (data) return data;
-      }
-      if (paymentId) {
-        const { data } = await supabase
-          .from('registrations')
-          .select('*')
-          .eq('razorpay_payment_id', paymentId)
-          .maybeSingle();
-        if (data) return data;
-      }
-      return null;
+    // Find registration in Blob storage
+    let existingReg = null;
+    if (regIdFromNotes) {
+      existingReg = await getRegistrationById(regIdFromNotes);
     }
-
-    const existingReg = await findRegistration();
+    if (!existingReg && orderId) {
+      existingReg = await findRegistrationByOrderId(orderId);
+    }
+    if (!existingReg && paymentId) {
+      existingReg = await findRegistrationByPaymentId(paymentId);
+    }
 
     if (!existingReg) {
       console.warn(`Webhook received for unknown registration: order ${orderId}, payment ${paymentId}`);
@@ -99,53 +86,49 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ status: 'ignored_unmatched_registration' });
     }
 
-    // Process event types
+    const regId = existingReg.registration_id;
+
+    // Process event types with idempotent state machine
     if (eventType === 'order.paid' || eventType === 'payment.captured') {
-      // Idempotency: If already Paid, do not duplicate or overwrite
       if (existingReg.payment_status === 'Paid') {
         return res.status(200).json({ status: 'already_paid_no_op' });
       }
 
-      await supabase
-        .from('registrations')
-        .update({
-          payment_status: 'Paid',
-          razorpay_payment_id: paymentId || existingReg.razorpay_payment_id,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingReg.id);
+      await updateRegistration(regId, (rec) => ({
+        ...rec,
+        payment_status: 'Paid',
+        razorpay_order_id: orderId || rec.razorpay_order_id,
+        razorpay_payment_id: paymentId || rec.razorpay_payment_id
+      }));
 
-      console.log(`Registration ${existingReg.registration_id} marked as Paid via webhook`);
+      console.log(`Registration ${regId} marked as Paid via webhook`);
       return res.status(200).json({ status: 'marked_paid' });
     }
 
     if (eventType === 'payment.failed') {
       // Only set to Failed if status is still Pending (don't overwrite Paid if another attempt succeeded)
       if (existingReg.payment_status === 'Pending') {
-        await supabase
-          .from('registrations')
-          .update({
+        await updateRegistration(regId, (rec) => {
+          if (rec.payment_status === 'Paid') return null; // Abort if raced to Paid
+          return {
+            ...rec,
             payment_status: 'Failed',
-            razorpay_payment_id: paymentId || existingReg.razorpay_payment_id,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingReg.id);
-
-        console.log(`Registration ${existingReg.registration_id} marked as Failed via webhook`);
+            razorpay_order_id: orderId || rec.razorpay_order_id,
+            razorpay_payment_id: paymentId || rec.razorpay_payment_id
+          };
+        });
+        console.log(`Registration ${regId} marked as Failed via webhook`);
       }
       return res.status(200).json({ status: 'marked_failed' });
     }
 
     if (eventType === 'refund.created' || eventType === 'refund.processed') {
-      await supabase
-        .from('registrations')
-        .update({
-          payment_status: 'Refunded',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingReg.id);
+      await updateRegistration(regId, (rec) => ({
+        ...rec,
+        payment_status: 'Refunded'
+      }));
 
-      console.log(`Registration ${existingReg.registration_id} marked as Refunded via webhook`);
+      console.log(`Registration ${regId} marked as Refunded via webhook`);
       return res.status(200).json({ status: 'marked_refunded' });
     }
 

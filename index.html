@@ -285,7 +285,7 @@ window.closeForm = () => {
 modal.addEventListener('click', e => { if (e.target === modal) closeForm(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeForm(); });
 
-// Form submission: Saves registration in Supabase BEFORE proceeding to payment
+// Form submission: Saves registration securely in Private Blob Store BEFORE proceeding to payment
 form.addEventListener('submit', async e => {
   e.preventDefault();
   if (!form.reportValidity()) return;

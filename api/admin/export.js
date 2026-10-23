@@ -1,8 +1,9 @@
 // ==============================================================================
 // BK EDU by Minaaz — API: Export Registrations as CSV
 // Endpoint: GET /api/admin/export
+// Storage: Vercel Private Blob Store
 // ==============================================================================
-const { getSupabase, requireAdminAuth } = require('../_utils');
+const { listAllRegistrations, requireAdminAuth } = require('../_utils');
 
 function escapeCsvCell(val) {
   if (val === null || val === undefined) return '""';
@@ -18,34 +19,41 @@ module.exports = async function handler(req, res) {
   if (!requireAdminAuth(req, res)) return;
 
   try {
-    const supabase = getSupabase();
     const { status = 'All', startDate = '', endDate = '', search = '' } = req.query || {};
 
-    let query = supabase
-      .from('registrations')
-      .select('*')
-      .order('created_at', { ascending: false });
+    let all = await listAllRegistrations();
 
+    // 1. Filter by status
     if (status && status !== 'All') {
-      query = query.eq('payment_status', status);
+      all = all.filter(r => r.payment_status === status);
     }
+
+    // 2. Filter by date range
     if (startDate) {
-      query = query.gte('created_at', new Date(startDate).toISOString());
+      const start = new Date(startDate);
+      all = all.filter(r => new Date(r.created_at) >= start);
     }
     if (endDate) {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
-      query = query.lte('created_at', end.toISOString());
-    }
-    if (search && search.trim()) {
-      const s = search.trim();
-      query = query.or(`full_name.ilike.%${s}%,email.ilike.%${s}%,phone.ilike.%${s}%,registration_id.ilike.%${s}%`);
+      all = all.filter(r => new Date(r.created_at) <= end);
     }
 
-    const { data: rows, error } = await query;
-    if (error) {
-      return res.status(500).json({ error: 'Database export error: ' + error.message });
+    // 3. Search filter
+    if (search && search.trim()) {
+      const s = search.trim().toLowerCase();
+      all = all.filter(r => {
+        const name  = (r.full_name || '').toLowerCase();
+        const email = (r.email || '').toLowerCase();
+        const phone = (r.phone || '').toLowerCase();
+        const regId = (r.registration_id || '').toLowerCase();
+        const payId = (r.razorpay_payment_id || '').toLowerCase();
+        return name.includes(s) || email.includes(s) || phone.includes(s) || regId.includes(s) || payId.includes(s);
+      });
     }
+
+    // 4. Sort descending by creation date
+    all.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
     const headers = [
       'Registration ID',
@@ -68,7 +76,7 @@ module.exports = async function handler(req, res) {
 
     const csvLines = [headers.join(',')];
 
-    for (const r of rows) {
+    for (const r of all) {
       const row = [
         escapeCsvCell(r.registration_id),
         escapeCsvCell(r.full_name),
