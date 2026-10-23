@@ -45,6 +45,7 @@ module.exports = async function handler(req, res) {
     try {
       await updatePaymentInGoogleSheets({
         registrationId,
+        orderId: razorpay_order_id,
         paymentId: razorpay_payment_id,
         status: 'Paid'
       });

@@ -69,6 +69,7 @@ module.exports = async function handler(req, res) {
       if (registrationId) {
         await updatePaymentInGoogleSheets({
           registrationId,
+          orderId,
           paymentId,
           status: 'Paid'
         });
@@ -81,6 +82,7 @@ module.exports = async function handler(req, res) {
       if (registrationId) {
         await updatePaymentInGoogleSheets({
           registrationId,
+          orderId,
           paymentId,
           status: 'Failed'
         });
@@ -92,6 +94,7 @@ module.exports = async function handler(req, res) {
       if (registrationId) {
         await updatePaymentInGoogleSheets({
           registrationId,
+          orderId,
           paymentId,
           status: 'Refunded'
         });

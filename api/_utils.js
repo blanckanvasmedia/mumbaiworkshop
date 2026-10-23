@@ -79,16 +79,20 @@ async function saveRegistrationToGoogleSheets({ registrationId, name, email, pho
 /**
  * Update payment status to 'Paid' in Google Sheets after verified payment confirmation.
  */
-async function updatePaymentInGoogleSheets({ registrationId, paymentId, status = 'Paid' }) {
+async function updatePaymentInGoogleSheets({ registrationId, orderId, paymentId, status = 'Paid' }) {
   const scriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
   const secret = process.env.GOOGLE_SHEETS_INGEST_SECRET;
 
   if (!scriptUrl) return null;
 
   const payload = {
-    action: 'update_payment',
+    action: 'updatePayment',
     registrationId,
+    orderId,
+    order_id: orderId,
+    razorpay_order_id: orderId,
     paymentId,
+    payment_id: paymentId,
     razorpay_payment_id: paymentId,
     paymentStatus: status,
     status,
@@ -108,7 +112,7 @@ async function updatePaymentInGoogleSheets({ registrationId, paymentId, status =
 
     return await response.json().catch(() => ({ success: true }));
   } catch (err) {
-    console.warn('Note: Google Sheets update_payment call notice:', err.message);
+    console.warn('Note: Google Sheets updatePayment call notice:', err.message);
     return null;
   }
 }
