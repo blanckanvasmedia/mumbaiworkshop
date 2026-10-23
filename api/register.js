@@ -1,11 +1,10 @@
 // ==============================================================================
 // BK EDU by Minaaz — API: Register Student & Initiate Payment
 // Endpoint: POST /api/register
-// Storage: Vercel Private Blob Store
+// Storage: Google Sheets via Google Apps Script Web App
 // ==============================================================================
 const {
-  createRegistration,
-  createOrderIndex,
+  saveRegistrationToGoogleSheets,
   createRazorpayOrder,
   generateRegistrationId
 } = require('./_utils');
@@ -35,7 +34,7 @@ module.exports = async function handler(req, res) {
       referrer    = ''
     } = req.body || {};
 
-    // Input validation
+    // 1. Input validation
     if (!fullName || !fullName.trim())
       return res.status(400).json({ error: 'Full name is required.' });
     if (!email || !email.includes('@'))
@@ -46,48 +45,37 @@ module.exports = async function handler(req, res) {
     const cleanName  = fullName.trim();
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = phone.trim();
-    const cleanCity  = city.trim();
 
-    // Check Blob token before doing anything else
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    // 2. Check Google Apps Script configuration
+    if (!process.env.GOOGLE_APPS_SCRIPT_URL) {
       return res.status(503).json({
-        error: 'Blob storage not configured. Add BLOB_READ_WRITE_TOKEN to Vercel Environment Variables.',
-        code: 'BLOB_NOT_CONFIGURED'
+        error: 'Registration backend not configured. Missing GOOGLE_APPS_SCRIPT_URL in Vercel.',
+        code: 'APPS_SCRIPT_NOT_CONFIGURED'
       });
     }
 
-    const registrationId  = generateRegistrationId();
-    const workshopFeeINR  = 1500;
-    const now             = new Date().toISOString();
+    const registrationId = generateRegistrationId();
+    const workshopFeeINR = 1500;
 
-    // 1. Build registration record
-    const newRecord = {
-      registration_id:      registrationId,
-      full_name:            cleanName,
-      email:                cleanEmail,
-      phone:                cleanPhone,
-      city:                 cleanCity,
-      amount:               workshopFeeINR,
-      currency:             'INR',
-      payment_status:       'Pending',
-      razorpay_order_id:    null,
-      razorpay_payment_id:  null,
-      razorpay_signature:   null,
-      utm_source:           utm_source   || null,
-      utm_medium:           utm_medium   || null,
-      utm_campaign:         utm_campaign || null,
-      utm_term:             utm_term     || null,
-      utm_content:          utm_content  || null,
-      referrer:             referrer     || null,
-      created_at:           now,
-      updated_at:           now
-    };
+    // 3. Save student details to Google Sheets through Apps Script with status Pending
+    // Check response for success BEFORE proceeding to payment
+    try {
+      await saveRegistrationToGoogleSheets({
+        registrationId,
+        name: cleanName,
+        email: cleanEmail,
+        phone: cleanPhone
+      });
+      console.log(`Registration ${registrationId} saved to Google Sheets (Pending)`);
+    } catch (sheetErr) {
+      console.error('Failed to save to Google Sheets:', sheetErr.message);
+      return res.status(502).json({
+        error: 'Unable to save registration to Google Sheets: ' + sheetErr.message,
+        code: 'SHEETS_INGEST_FAILED'
+      });
+    }
 
-    // 2. Persist registration as 'Pending' BEFORE touching Razorpay
-    await createRegistration(newRecord);
-    console.log(`Registration ${registrationId} saved to Blob (Pending)`);
-
-    // 3. Create per-registration Razorpay Order
+    // 4. Create per-registration Razorpay Order
     let razorpayOrder = null;
     try {
       razorpayOrder = await createRazorpayOrder({
@@ -102,17 +90,12 @@ module.exports = async function handler(req, res) {
         }
       });
     } catch (rzpErr) {
-      // Razorpay key missing or API error — fall back to shared link
       console.warn('Razorpay order creation skipped:', rzpErr.message);
     }
 
-    // 4. If order was created, update blob with order ID and write lookup index
+    // 5. If Razorpay order was created, return checkout mode
     if (razorpayOrder && razorpayOrder.id) {
-      const withOrder = { ...newRecord, razorpay_order_id: razorpayOrder.id, updated_at: new Date().toISOString() };
-      await createRegistration(withOrder);          // overwrite blob with order ID
-      await createOrderIndex(razorpayOrder.id, registrationId); // write lookup index
-      console.log(`Order ${razorpayOrder.id} linked to ${registrationId}`);
-
+      console.log(`Order ${razorpayOrder.id} generated for ${registrationId}`);
       return res.status(200).json({
         success:        true,
         mode:           'checkout',
@@ -129,7 +112,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // 5. Graceful fallback when Razorpay keys are not yet configured
+    // 6. Graceful fallback when Razorpay API keys are not yet configured
     return res.status(200).json({
       success:      true,
       mode:         'fallback_link',
@@ -137,7 +120,7 @@ module.exports = async function handler(req, res) {
       fallbackUrl:  'https://rzp.io/l/8WLl29j',
       amount:       workshopFeeINR,
       currency:     'INR',
-      message:      'Registration saved. Razorpay keys not yet configured — using shared payment link.'
+      message:      'Registration saved in Google Sheets. Razorpay keys not yet configured — using shared payment link.'
     });
 
   } catch (err) {

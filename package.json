@@ -2,11 +2,8 @@
   "name": "bk-edu-mumbai-workshop",
   "version": "1.0.0",
   "private": true,
-  "description": "BK EDU by Minaaz Mumbai Mega Workshop Registration & Payment Tracking System",
+  "description": "BK EDU by Minaaz Mumbai Mega Workshop Registration System with Google Sheets & Razorpay",
   "scripts": {
     "start": "npx serve ."
-  },
-  "dependencies": {
-    "@vercel/blob": "^0.27.0"
   }
 }

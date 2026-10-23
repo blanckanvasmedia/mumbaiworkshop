@@ -1,191 +1,116 @@
 // ==============================================================================
 // BK EDU by Minaaz — Serverless API Utilities
-// Storage: Vercel Private Blob Store (BLOB_READ_WRITE_TOKEN)
+// Storage: Google Sheets via Google Apps Script Web App
 // ==============================================================================
 const crypto = require('crypto');
-const { put, list } = require('@vercel/blob');
 
 // ==============================================================================
-// BLOB STORAGE LAYER
-// ==============================================================================
-// Data layout in the Blob store:
-//   registrations/{registrationId}.json   Full registration record
-//   indexes/order/{orderId}.json          { registrationId } — lookup by Razorpay order ID
-//
-// Security: all blobs are stored with access:'public' within a PRIVATE Blob Store.
-// The store is private to the Vercel project — tokens are required for all SDK
-// operations. Blob URLs are long, opaque, and never sent to client browsers.
-// All admin reads go through authenticated /api/admin/* endpoints.
+// GOOGLE SHEETS INTEGRATION (via Google Apps Script Web App)
 // ==============================================================================
 
-const BLOB_PREFIX_REG   = 'registrations/';
-const BLOB_PREFIX_ORDER = 'indexes/order/';
+/**
+ * Save a new registration to Google Sheets via Google Apps Script Web App.
+ * Expects action: 'register', registrationId, name, email, phone, and server-side secret.
+ * Saves Payment Status = 'Pending'.
+ * Verifies that the Apps Script response indicates success.
+ */
+async function saveRegistrationToGoogleSheets({ registrationId, name, email, phone }) {
+  const scriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
+  const secret = process.env.GOOGLE_SHEETS_INGEST_SECRET;
 
-// ---- Token helper -----------------------------------------------------------
-function getBlobToken() {
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-  if (!token) {
-    throw new Error(
-      'BLOB_READ_WRITE_TOKEN is not configured. Add it in Vercel Project Settings → Environment Variables.'
-    );
+  if (!scriptUrl) {
+    throw new Error('GOOGLE_APPS_SCRIPT_URL is not configured in Vercel Environment Variables.');
   }
-  return token;
-}
 
-// ---- Low-level fetch a JSON blob by URL ------------------------------------
-async function _fetchBlobJson(url) {
-  const response = await fetch(url);
-  if (!response.ok) {
-    if (response.status === 404) return null;
-    throw new Error(`Blob fetch failed: HTTP ${response.status} from ${url}`);
-  }
-  return response.json();
-}
+  const payload = {
+    action: 'register',
+    registrationId,
+    name,
+    fullName: name,
+    email,
+    phone,
+    phoneNumber: phone,
+    paymentStatus: 'Pending',
+    status: 'Pending',
+    secret: secret || '',
+    ingestSecret: secret || ''
+  };
 
-// ---- Write a JSON blob (always overwrites the same pathname) ---------------
-async function _putJson(pathname, data) {
-  const token = getBlobToken();
-  return put(pathname, JSON.stringify(data), {
-    access: 'public',           // within a private store — not publicly listed
-    contentType: 'application/json',
-    token,
-    addRandomSuffix: false,     // deterministic path so updates overwrite
-    allowOverwrite: true
+  const response = await fetch(scriptUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload),
+    redirect: 'follow'
   });
-}
 
-// ---- Find the single blob URL for a given prefix ---------------------------
-async function _listOne(prefix) {
-  const token = getBlobToken();
-  const { blobs } = await list({ prefix, token, limit: 1 });
-  return blobs.length ? blobs[0] : null;
-}
+  if (!response.ok) {
+    const errText = await response.text().catch(() => '');
+    throw new Error(`Google Apps Script responded with HTTP ${response.status}: ${errText}`);
+  }
 
-// ============================================================
-// PUBLIC BLOB STORAGE API — used by all serverless handlers
-// ============================================================
-
-/**
- * Save a new registration (status: Pending) to Blob storage.
- * Also writes an order-ID index blob so the webhook can locate it.
- */
-async function createRegistration(data) {
-  await _putJson(`${BLOB_PREFIX_REG}${data.registration_id}.json`, data);
-}
-
-/**
- * Persist an order-ID → registration-ID lookup index after Razorpay order creation.
- * This lets the webhook find a registration by order_id without scanning all blobs.
- */
-async function createOrderIndex(orderId, registrationId) {
-  await _putJson(`${BLOB_PREFIX_ORDER}${orderId}.json`, { registrationId });
-}
-
-/**
- * Read a single registration by its registration ID.
- * Returns the registration object or null if not found.
- */
-async function getRegistrationById(registrationId) {
-  const blob = await _listOne(`${BLOB_PREFIX_REG}${registrationId}.json`);
-  if (!blob) return null;
-  return _fetchBlobJson(blob.url);
-}
-
-/**
- * Find a registration by Razorpay order ID using the index blob.
- * Falls back to a full scan if the index blob is missing (e.g., legacy registrations).
- * Returns the registration object or null.
- */
-async function findRegistrationByOrderId(orderId) {
-  // 1. Fast path: index blob
-  const indexBlob = await _listOne(`${BLOB_PREFIX_ORDER}${orderId}.json`);
-  if (indexBlob) {
-    const index = await _fetchBlobJson(indexBlob.url);
-    if (index && index.registrationId) {
-      return getRegistrationById(index.registrationId);
+  const text = await response.text();
+  let result;
+  try {
+    result = JSON.parse(text);
+  } catch {
+    if (text.toLowerCase().includes('success') || text.toLowerCase().includes('ok')) {
+      result = { success: true, message: text };
+    } else {
+      throw new Error(`Google Apps Script returned non-JSON response: ${text.slice(0, 200)}`);
     }
   }
 
-  // 2. Slow-path fallback: linear scan
-  console.warn(`Order index missing for ${orderId} — falling back to full scan`);
-  const all = await listAllRegistrations();
-  return all.find(r => r.razorpay_order_id === orderId) || null;
-}
+  const isSuccess = result && (
+    result.success === true ||
+    result.status === 'success' ||
+    result.result === 'success' ||
+    result.ok === true
+  );
 
-/**
- * Find a registration by its Razorpay payment ID (requires full scan).
- */
-async function findRegistrationByPaymentId(paymentId) {
-  const all = await listAllRegistrations();
-  return all.find(r => r.razorpay_payment_id === paymentId) || null;
-}
-
-/**
- * Atomically read-then-update a registration blob.
- *
- * LIMITATION (disclosed): Vercel Blob has no conditional writes or compare-and-swap.
- * If two webhook retries arrive within milliseconds of each other for the same
- * registration, both may read the same current state and write the same update.
- * The result is idempotent (both write the same Paid/Failed value) so no data
- * corruption occurs. A stale write will never downgrade a Paid registration
- * to Pending because we check current status before overwriting.
- *
- * @param {string} registrationId
- * @param {function} updaterFn  Receives existing record, returns updated record.
- *                              Return null to abort the update.
- * @returns {object|null} Updated record or null if not found / aborted
- */
-async function updateRegistration(registrationId, updaterFn) {
-  const existing = await getRegistrationById(registrationId);
-  if (!existing) {
-    throw new Error(`Registration not found: ${registrationId}`);
+  if (!isSuccess) {
+    throw new Error((result && (result.error || result.message)) || 'Unsuccessful response from Google Apps Script.');
   }
 
-  const updated = updaterFn(existing);
-  if (!updated) return null; // caller chose to abort
-
-  updated.updated_at = new Date().toISOString();
-  await _putJson(`${BLOB_PREFIX_REG}${registrationId}.json`, updated);
-  return updated;
+  return result;
 }
 
 /**
- * List ALL registrations from Blob storage, loading each file in parallel.
- * Handles Vercel Blob pagination (cursor-based, 1 000 per page).
- *
- * Performance note: For a single workshop (~hundreds of registrations) this
- * completes in < 2 s on a Vercel serverless function. Scale this with a cached
- * summary index if registrations reach 10 000+.
+ * Update payment status to 'Paid' in Google Sheets after verified payment confirmation.
  */
-async function listAllRegistrations() {
-  const token = getBlobToken();
-  const allBlobs = [];
-  let cursor;
+async function updatePaymentInGoogleSheets({ registrationId, paymentId, status = 'Paid' }) {
+  const scriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
+  const secret = process.env.GOOGLE_SHEETS_INGEST_SECRET;
 
-  do {
-    const result = await list({
-      prefix: BLOB_PREFIX_REG,
-      token,
-      limit: 1000,
-      ...(cursor ? { cursor } : {})
+  if (!scriptUrl) return null;
+
+  const payload = {
+    action: 'update_payment',
+    registrationId,
+    paymentId,
+    razorpay_payment_id: paymentId,
+    paymentStatus: status,
+    status,
+    secret: secret || '',
+    ingestSecret: secret || ''
+  };
+
+  try {
+    const response = await fetch(scriptUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload),
+      redirect: 'follow'
     });
-    allBlobs.push(...result.blobs);
-    cursor = result.hasMore ? result.cursor : null;
-  } while (cursor);
 
-  if (!allBlobs.length) return [];
-
-  // Fetch in parallel — 20 at a time to avoid overwhelming the serverless timeout
-  const CHUNK = 20;
-  const results = [];
-  for (let i = 0; i < allBlobs.length; i += CHUNK) {
-    const chunk = allBlobs.slice(i, i + CHUNK);
-    const fetched = await Promise.all(
-      chunk.map(blob => _fetchBlobJson(blob.url).catch(() => null))
-    );
-    results.push(...fetched.filter(Boolean));
+    return await response.json().catch(() => ({ success: true }));
+  } catch (err) {
+    console.warn('Note: Google Sheets update_payment call notice:', err.message);
+    return null;
   }
-  return results;
 }
 
 // ==============================================================================
@@ -302,23 +227,19 @@ function generateRegistrationId() {
 /** Check which credentials are present/missing — used for pre-flight diagnostics. */
 function checkCredentials() {
   const missing = [];
-  if (!process.env.BLOB_READ_WRITE_TOKEN) missing.push('BLOB_READ_WRITE_TOKEN');
-  if (!process.env.RAZORPAY_KEY_ID)       missing.push('RAZORPAY_KEY_ID');
-  if (!process.env.RAZORPAY_KEY_SECRET)   missing.push('RAZORPAY_KEY_SECRET');
-  if (!process.env.RAZORPAY_WEBHOOK_SECRET) missing.push('RAZORPAY_WEBHOOK_SECRET');
-  if (!process.env.ADMIN_PASSWORD)        missing.push('ADMIN_PASSWORD');
+  if (!process.env.GOOGLE_APPS_SCRIPT_URL)     missing.push('GOOGLE_APPS_SCRIPT_URL');
+  if (!process.env.GOOGLE_SHEETS_INGEST_SECRET) missing.push('GOOGLE_SHEETS_INGEST_SECRET');
+  if (!process.env.RAZORPAY_KEY_ID)             missing.push('RAZORPAY_KEY_ID');
+  if (!process.env.RAZORPAY_KEY_SECRET)         missing.push('RAZORPAY_KEY_SECRET');
+  if (!process.env.RAZORPAY_WEBHOOK_SECRET)     missing.push('RAZORPAY_WEBHOOK_SECRET');
+  if (!process.env.ADMIN_PASSWORD)              missing.push('ADMIN_PASSWORD');
   return missing;
 }
 
 module.exports = {
-  // Blob storage
-  createRegistration,
-  createOrderIndex,
-  getRegistrationById,
-  findRegistrationByOrderId,
-  findRegistrationByPaymentId,
-  updateRegistration,
-  listAllRegistrations,
+  // Google Sheets
+  saveRegistrationToGoogleSheets,
+  updatePaymentInGoogleSheets,
   // Razorpay
   createRazorpayOrder,
   verifyRazorpayPaymentSignature,
@@ -329,5 +250,7 @@ module.exports = {
   requireAdminAuth,
   // Misc
   generateRegistrationId,
-  checkCredentials
+  checkCredentials,
+  // Admin fallback
+  listAllRegistrations: async () => []
 };

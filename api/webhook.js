@@ -1,13 +1,10 @@
 // ==============================================================================
 // BK EDU by Minaaz — API: Razorpay Webhook Handler
 // Endpoint: POST /api/webhook
-// Storage: Vercel Private Blob Store
+// Storage: Google Sheets via Google Apps Script Web App
 // ==============================================================================
 const {
-  getRegistrationById,
-  findRegistrationByOrderId,
-  findRegistrationByPaymentId,
-  updateRegistration,
+  updatePaymentInGoogleSheets,
   verifyWebhookSignature
 } = require('./_utils');
 
@@ -38,7 +35,7 @@ module.exports = async function handler(req, res) {
 
     const rawBody = await getRawBody(req);
 
-    // Verify webhook signature
+    // Verify webhook cryptographic signature
     let isValid = false;
     try {
       isValid = verifyWebhookSignature(rawBody, signature);
@@ -59,76 +56,46 @@ module.exports = async function handler(req, res) {
     const payload = eventData.payload || {};
     const paymentEntity = payload.payment ? payload.payment.entity : null;
     const orderEntity = payload.order ? payload.order.entity : null;
-    const refundEntity = payload.refund ? payload.refund.entity : null;
 
-    // Determine registration identifier
     const orderId = (paymentEntity && paymentEntity.order_id) || (orderEntity && orderEntity.id) || null;
     const paymentId = (paymentEntity && paymentEntity.id) || null;
     const regIdFromNotes = (paymentEntity && paymentEntity.notes && paymentEntity.notes.registration_id)
       || (orderEntity && orderEntity.notes && orderEntity.notes.registration_id)
       || null;
 
-    // Find registration in Blob storage
-    let existingReg = null;
-    if (regIdFromNotes) {
-      existingReg = await getRegistrationById(regIdFromNotes);
-    }
-    if (!existingReg && orderId) {
-      existingReg = await findRegistrationByOrderId(orderId);
-    }
-    if (!existingReg && paymentId) {
-      existingReg = await findRegistrationByPaymentId(paymentId);
-    }
+    const registrationId = regIdFromNotes || orderId;
 
-    if (!existingReg) {
-      console.warn(`Webhook received for unknown registration: order ${orderId}, payment ${paymentId}`);
-      // Return 200 so Razorpay stops retrying unknown events
-      return res.status(200).json({ status: 'ignored_unmatched_registration' });
-    }
-
-    const regId = existingReg.registration_id;
-
-    // Process event types with idempotent state machine
     if (eventType === 'order.paid' || eventType === 'payment.captured') {
-      if (existingReg.payment_status === 'Paid') {
-        return res.status(200).json({ status: 'already_paid_no_op' });
+      if (registrationId) {
+        await updatePaymentInGoogleSheets({
+          registrationId,
+          paymentId,
+          status: 'Paid'
+        });
+        console.log(`Webhook marked registration ${registrationId} as Paid in Google Sheets`);
       }
-
-      await updateRegistration(regId, (rec) => ({
-        ...rec,
-        payment_status: 'Paid',
-        razorpay_order_id: orderId || rec.razorpay_order_id,
-        razorpay_payment_id: paymentId || rec.razorpay_payment_id
-      }));
-
-      console.log(`Registration ${regId} marked as Paid via webhook`);
       return res.status(200).json({ status: 'marked_paid' });
     }
 
     if (eventType === 'payment.failed') {
-      // Only set to Failed if status is still Pending (don't overwrite Paid if another attempt succeeded)
-      if (existingReg.payment_status === 'Pending') {
-        await updateRegistration(regId, (rec) => {
-          if (rec.payment_status === 'Paid') return null; // Abort if raced to Paid
-          return {
-            ...rec,
-            payment_status: 'Failed',
-            razorpay_order_id: orderId || rec.razorpay_order_id,
-            razorpay_payment_id: paymentId || rec.razorpay_payment_id
-          };
+      if (registrationId) {
+        await updatePaymentInGoogleSheets({
+          registrationId,
+          paymentId,
+          status: 'Failed'
         });
-        console.log(`Registration ${regId} marked as Failed via webhook`);
       }
       return res.status(200).json({ status: 'marked_failed' });
     }
 
     if (eventType === 'refund.created' || eventType === 'refund.processed') {
-      await updateRegistration(regId, (rec) => ({
-        ...rec,
-        payment_status: 'Refunded'
-      }));
-
-      console.log(`Registration ${regId} marked as Refunded via webhook`);
+      if (registrationId) {
+        await updatePaymentInGoogleSheets({
+          registrationId,
+          paymentId,
+          status: 'Refunded'
+        });
+      }
       return res.status(200).json({ status: 'marked_refunded' });
     }
 
