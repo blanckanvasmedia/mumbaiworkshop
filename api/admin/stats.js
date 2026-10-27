@@ -32,7 +32,7 @@ module.exports = async function handler(req, res) {
       const status = row.payment_status;
       if (status === 'Paid') {
         paidCount++;
-        confirmedRevenue += Number(row.amount || 1500);
+        confirmedRevenue += Number(row.amount || 999);
       } else if (status === 'Pending') {
         pendingCount++;
       } else if (status === 'Failed') {

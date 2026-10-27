@@ -1,79 +1,228 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080808"><title>Thank You | BK EDU by Minaaz — Mumbai Workshop</title>
-<meta name="description" content="Thank you for registering for the BK EDU by Minaaz Mumbai Mega Workshop.">
-<style>
-:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;min-height:100svh;background:#080808;color:#fff;font-family:Inter,'Segoe UI',Arial,sans-serif;display:grid;place-items:center;padding:24px;background-image:radial-gradient(ellipse at 50% 20%,rgba(153,17,47,.21),transparent 62%)}
-.frame{width:min(100%,690px);text-align:center;padding:clamp(32px,7vw,70px) clamp(24px,6vw,62px);border:1px solid #3a222a;border-radius:22px;background:linear-gradient(155deg,#171014 0%,#0e0b0d 63%,#140a0e 100%);box-shadow:0 30px 100px #0008;position:relative;overflow:hidden}
-.frame:before{content:'';position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#520b1d,#e73557,#520b1d)}.brand{font-weight:850;letter-spacing:.15em;font-size:clamp(12px,1.7vw,15px);margin-bottom:48px}.brand span{color:#f35870}.mark{width:78px;height:78px;display:grid;place-items:center;border:1px solid #a72643;background:#390e1d;border-radius:50%;margin:0 auto 27px;color:#ff6f87}.mark svg{width:34px;height:34px}
-.kicker{font-weight:800;letter-spacing:.23em;text-transform:uppercase;font-size:11px;color:#ff6b83;margin:0 0 12px}h1{font-size:clamp(46px,8vw,78px);letter-spacing:-.065em;line-height:1.05;margin:0 0 20px;font-weight:850}p{font-size:clamp(15px,2.6vw,18px);line-height:1.65;color:#ddd2d7;margin:0 auto;max-width:475px}.event{margin:36px auto 0;border-top:1px solid #3b2730;padding-top:23px;color:#f9e9ef;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}.small{color:#8b7d83;font-size:12px;margin-top:34px}@media(max-width:480px){.frame{padding:42px 22px}.brand{margin-bottom:36px}.event{font-size:11px}}
-</style>
-<!-- Meta Pixel, PageView only by default -->
-<script>
-!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-fbq('init','582955268888858');fbq('track','PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=582955268888858&amp;ev=PageView&amp;noscript=1"></noscript>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-440238541"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+<html lang="en">
 
-  gtag('config', 'AW-440238541');
-</script>
-<!-- Vercel Web Analytics -->
-<script defer src="/_vercel/insights/script.js"></script>
-</head><body><main class="frame"><div class="brand">BK <span>EDU</span> BY MINAAZ</div><div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></div><p class="kicker">Mumbai Mega Workshop</p><h1>Thank You!</h1><p>Thank you for registering for the Mumbai Mega Workshop by BK EDU by Minaaz. We look forward to welcoming you!</p>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080808">
+  <title>Thank You | BK EDU by Minaaz — Mumbai Workshop</title>
+  <meta name="description" content="Thank you for registering for the BK EDU by Minaaz Mumbai Mega Workshop.">
+  <style>
+    :root {
+      color-scheme: dark
+    }
 
-<div id="booking-badge" style="display:none;margin:24px auto 0;padding:16px 20px;border:1px solid #57202d;border-radius:10px;background:#180d12;max-width:440px;text-align:left">
-  <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#ff6882;margin-bottom:8px">Booking Confirmation Details</div>
-  <div style="font-size:13px;color:#ddd;display:flex;justify-content:space-between;padding:4px 0"><span>Registration ID:</span><strong id="badge-reg-id" style="color:#fff;font-family:monospace"></strong></div>
-  <div id="badge-pay-row" style="font-size:13px;color:#ddd;display:flex;justify-content:space-between;padding:4px 0"><span>Payment ID:</span><strong id="badge-pay-id" style="color:#4ade80;font-family:monospace"></strong></div>
-  <div style="font-size:13px;color:#ddd;display:flex;justify-content:space-between;padding:4px 0"><span>Amount Paid:</span><strong style="color:#fff">₹1,500 INR</strong></div>
-</div>
+    * {
+      box-sizing: border-box
+    }
 
-<div class="event">25 October 2026 &nbsp;·&nbsp; Mumbai</div><div class="small">BK EDU BY MINAAZ · INDIA'S LEADING MODELLING ACADEMY</div></main>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100svh;
+      background: #080808;
+      color: #fff;
+      font-family: Inter, 'Segoe UI', Arial, sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background-image: radial-gradient(ellipse at 50% 20%, rgba(153, 17, 47, .21), transparent 62%)
+    }
 
-<script>
-  (function() {
-    var params = new URLSearchParams(window.location.search);
-    var regId = params.get('reg_id') || '';
-    var payId = params.get('payment_id') || '';
-    var isVerified = params.get('verified') === '1';
+    .frame {
+      width: min(100%, 690px);
+      text-align: center;
+      padding: clamp(32px, 7vw, 70px) clamp(24px, 6vw, 62px);
+      border: 1px solid #3a222a;
+      border-radius: 22px;
+      background: linear-gradient(155deg, #171014 0%, #0e0b0d 63%, #140a0e 100%);
+      box-shadow: 0 30px 100px #0008;
+      position: relative;
+      overflow: hidden
+    }
 
-    if (regId || payId) {
-      var badge = document.getElementById('booking-badge');
-      if (badge) {
-        badge.style.display = 'block';
-        if (regId) document.getElementById('badge-reg-id').textContent = regId;
-        if (payId) {
-          document.getElementById('badge-pay-id').textContent = payId;
-        } else {
-          var payRow = document.getElementById('badge-pay-row');
-          if (payRow) payRow.style.display = 'none';
-        }
+    .frame:before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 4px;
+      background: linear-gradient(90deg, #520b1d, #e73557, #520b1d)
+    }
+
+    .brand {
+      font-weight: 850;
+      letter-spacing: .15em;
+      font-size: clamp(12px, 1.7vw, 15px);
+      margin-bottom: 48px
+    }
+
+    .brand span {
+      color: #f35870
+    }
+
+    .mark {
+      width: 78px;
+      height: 78px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #a72643;
+      background: #390e1d;
+      border-radius: 50%;
+      margin: 0 auto 27px;
+      color: #ff6f87
+    }
+
+    .mark svg {
+      width: 34px;
+      height: 34px
+    }
+
+    .kicker {
+      font-weight: 800;
+      letter-spacing: .23em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: #ff6b83;
+      margin: 0 0 12px
+    }
+
+    h1 {
+      font-size: clamp(46px, 8vw, 78px);
+      letter-spacing: -.065em;
+      line-height: 1.05;
+      margin: 0 0 20px;
+      font-weight: 850
+    }
+
+    p {
+      font-size: clamp(15px, 2.6vw, 18px);
+      line-height: 1.65;
+      color: #ddd2d7;
+      margin: 0 auto;
+      max-width: 475px
+    }
+
+    .event {
+      margin: 36px auto 0;
+      border-top: 1px solid #3b2730;
+      padding-top: 23px;
+      color: #f9e9ef;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 700
+    }
+
+    .small {
+      color: #8b7d83;
+      font-size: 12px;
+      margin-top: 34px
+    }
+
+    @media(max-width:480px) {
+      .frame {
+        padding: 42px 22px
+      }
+
+      .brand {
+        margin-bottom: 36px
+      }
+
+      .event {
+        font-size: 11px
       }
     }
+  </style>
+  <!-- Meta Pixel, PageView only by default -->
+  <script>
+    !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments) }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s) }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '582955268888858'); fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none" alt=""
+      src="https://www.facebook.com/tr?id=582955268888858&amp;ev=PageView&amp;noscript=1"></noscript>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-440238541"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
 
-    // Only fire conversion when verified parameter is present and valid payment ID exists
-    if (isVerified && payId && typeof gtag === 'function') {
-      try {
-        gtag('event', 'conversion', {
-          'send_to': 'AW-440238541',
-          'value': 1500.0,
-          'currency': 'INR',
-          'transaction_id': payId
-        });
-        if (typeof fbq === 'function') {
-          fbq('track', 'Purchase', {
-            value: 1500.0,
-            currency: 'INR',
-            content_name: 'Mumbai Mega Workshop'
-          });
+    gtag('config', 'AW-440238541');
+  </script>
+  <!-- Vercel Web Analytics -->
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+
+<body>
+  <main class="frame">
+    <div class="brand">BK <span>EDU</span> BY MINAAZ</div>
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="m5 12 4 4L19 6" />
+      </svg></div>
+    <p class="kicker">Mumbai Mega Workshop</p>
+    <h1>Thank You!</h1>
+    <p>Thank you for registering for the Mumbai Mega Workshop by BK EDU by Minaaz. We look forward to welcoming you!</p>
+
+    <div id="booking-badge"
+      style="display:none;margin:24px auto 0;padding:16px 20px;border:1px solid #57202d;border-radius:10px;background:#180d12;max-width:440px;text-align:left">
+      <div
+        style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#ff6882;margin-bottom:8px">
+        Booking Confirmation Details</div>
+      <div style="font-size:13px;color:#ddd;display:flex;justify-content:space-between;padding:4px 0"><span>Registration
+          ID:</span><strong id="badge-reg-id" style="color:#fff;font-family:monospace"></strong></div>
+      <div id="badge-pay-row"
+        style="font-size:13px;color:#ddd;display:flex;justify-content:space-between;padding:4px 0"><span>Payment
+          ID:</span><strong id="badge-pay-id" style="color:#4ade80;font-family:monospace"></strong></div>
+      <div style="font-size:13px;color:#ddd;display:flex;justify-content:space-between;padding:4px 0"><span>Amount
+          Paid:</span><strong style="color:#fff">₹999 INR</strong></div>
+    </div>
+
+    <div class="event">22nd November 2026 &nbsp;·&nbsp; Mumbai</div>
+    <div class="small">BK EDU BY MINAAZ · INDIA'S LEADING MODELLING ACADEMY</div>
+  </main>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var regId = params.get('reg_id') || '';
+      var payId = params.get('payment_id') || '';
+      var isVerified = params.get('verified') === '1';
+
+      if (regId || payId) {
+        var badge = document.getElementById('booking-badge');
+        if (badge) {
+          badge.style.display = 'block';
+          if (regId) document.getElementById('badge-reg-id').textContent = regId;
+          if (payId) {
+            document.getElementById('badge-pay-id').textContent = payId;
+          } else {
+            var payRow = document.getElementById('badge-pay-row');
+            if (payRow) payRow.style.display = 'none';
+          }
         }
-      } catch (e) {}
-    }
-  })();
-</script>
-</body></html>
+      }
+
+      // Only fire conversion when verified parameter is present and valid payment ID exists
+      if (isVerified && payId && typeof gtag === 'function') {
+        try {
+          gtag('event', 'conversion', {
+            'send_to': 'AW-440238541',
+            'value': 999.0,
+            'currency': 'INR',
+            'transaction_id': payId
+          });
+          if (typeof fbq === 'function') {
+            fbq('track', 'Purchase', {
+              value: 999.0,
+              currency: 'INR',
+              content_name: 'Mumbai Mega Workshop'
+            });
+          }
+        } catch (e) { }
+      }
+    })();
+  </script>
+</body>
+
+</html>

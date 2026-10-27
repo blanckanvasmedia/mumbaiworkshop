@@ -529,7 +529,7 @@
       <div class="stat-card card-rev">
         <div class="stat-label">Confirmed Revenue</div>
         <div class="stat-value" id="stat-revenue">₹0</div>
-        <div class="stat-sub">₹1,500 per confirmed student</div>
+        <div class="stat-sub">₹999 per confirmed student</div>
       </div>
       <div class="stat-card card-primary">
         <div class="stat-label">Conversion Rate</div>
@@ -835,7 +835,7 @@
         ['WhatsApp / Phone', `<a href="tel:${escapeHtml(r.phone)}" style="color:#fff">${escapeHtml(r.phone)}</a>`],
         ['City', r.city || '—'],
         ['Payment Status', getStatusBadge(r.payment_status)],
-        ['Amount', `₹${r.amount || 1500} ${r.currency || 'INR'}`],
+        ['Amount', `₹${r.amount || 999} ${r.currency || 'INR'}`],
         ['Razorpay Payment ID', r.razorpay_payment_id || 'None'],
         ['Razorpay Order ID', r.razorpay_order_id || 'None'],
         ['Registered On', formatDateTime(r.created_at)],

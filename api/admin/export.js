@@ -87,7 +87,7 @@ module.exports = async function handler(req, res) {
         escapeCsvCell(r.payment_status),
         escapeCsvCell(r.razorpay_payment_id || ''),
         escapeCsvCell(r.razorpay_order_id || ''),
-        escapeCsvCell(r.amount || 1500),
+        escapeCsvCell(r.amount || 999),
         escapeCsvCell(r.utm_source || ''),
         escapeCsvCell(r.utm_medium || ''),
         escapeCsvCell(r.utm_campaign || ''),

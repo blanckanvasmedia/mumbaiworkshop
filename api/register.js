@@ -55,7 +55,7 @@ module.exports = async function handler(req, res) {
     }
 
     const registrationId = generateRegistrationId();
-    const workshopFeeINR = 1500;
+    const workshopFeeINR = 999;
 
     // 3. Save student details to Google Sheets through Apps Script with status Pending
     // Check response for success BEFORE proceeding to payment
