@@ -117,7 +117,7 @@ module.exports = async function handler(req, res) {
       success:      true,
       mode:         'fallback_link',
       registrationId,
-      fallbackUrl:  'https://rzp.io/l/8WLl29j',
+      fallbackUrl:  'https://rzp.io/rzp/NrwSNBZG',
       amount:       workshopFeeINR,
       currency:     'INR',
       message:      'Registration saved in Google Sheets. Razorpay keys not yet configured — using shared payment link.'
