@@ -26,14 +26,35 @@ async function saveRegistrationToGoogleSheets({
     throw new Error('GOOGLE_APPS_SCRIPT_URL is not configured in Vercel Environment Variables.');
   }
 
-  // Build a single readable "Lead Source" label for the sheet
-  let leadSource = utm_source || '';
-  if (utm_medium) leadSource += (leadSource ? ' / ' : '') + utm_medium;
-  if (utm_campaign) leadSource += (leadSource ? ' / ' : '') + utm_campaign;
-  if (!leadSource && referrer) {
-    try { leadSource = new URL(referrer).hostname; } catch { leadSource = referrer.slice(0, 60); }
+  // Build a single clean "Lead Source" label (e.g. "Instagram Ads", "Facebook", "Google Ads")
+  const src = (utm_source || '').toLowerCase();
+  const med = (utm_medium || '').toLowerCase();
+  const ref = (referrer || '').toLowerCase();
+
+  let leadSource;
+
+  if (src.includes('instagram') || ref.includes('instagram.com')) {
+    leadSource = med.includes('paid') || med.includes('cpc') || med.includes('ad') ? 'Instagram Ads' : 'Instagram';
+  } else if (src.includes('facebook') || src.includes('fb') || ref.includes('facebook.com')) {
+    leadSource = med.includes('paid') || med.includes('cpc') || med.includes('ad') ? 'Facebook Ads' : 'Facebook';
+  } else if (src.includes('google') || ref.includes('google.com')) {
+    leadSource = med.includes('paid') || med.includes('cpc') || med.includes('ad') ? 'Google Ads' : 'Google';
+  } else if (src.includes('youtube') || ref.includes('youtube.com')) {
+    leadSource = 'YouTube';
+  } else if (src.includes('whatsapp') || ref.includes('whatsapp')) {
+    leadSource = 'WhatsApp';
+  } else if (src.includes('meta')) {
+    leadSource = 'Meta Ads';
+  } else if (src.includes('email') || med.includes('email')) {
+    leadSource = 'Email';
+  } else if (src) {
+    // Capitalise whatever utm_source says
+    leadSource = src.charAt(0).toUpperCase() + src.slice(1);
+  } else if (ref) {
+    try { leadSource = new URL(referrer).hostname.replace('www.', ''); } catch { leadSource = 'Referral'; }
+  } else {
+    leadSource = 'Direct';
   }
-  if (!leadSource) leadSource = 'Direct';
 
   const payload = {
     action: 'register',
@@ -45,14 +66,7 @@ async function saveRegistrationToGoogleSheets({
     phoneNumber: phone,
     paymentStatus: 'Pending',
     status: 'Pending',
-    // UTM / lead source columns
-    leadSource,
-    utm_source,
-    utm_medium,
-    utm_campaign,
-    utm_term,
-    utm_content,
-    referrer,
+    leadSource,          // ← single clean column: "Instagram Ads", "Facebook", "Direct" etc.
     secret: secret || '',
     ingestSecret: secret || ''
   };
