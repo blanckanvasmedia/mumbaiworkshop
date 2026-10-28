@@ -14,13 +14,26 @@ const crypto = require('crypto');
  * Saves Payment Status = 'Pending'.
  * Verifies that the Apps Script response indicates success.
  */
-async function saveRegistrationToGoogleSheets({ registrationId, name, email, phone }) {
+async function saveRegistrationToGoogleSheets({
+  registrationId, name, email, phone,
+  utm_source = '', utm_medium = '', utm_campaign = '',
+  utm_term = '', utm_content = '', referrer = ''
+}) {
   const scriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
   const secret = process.env.GOOGLE_SHEETS_INGEST_SECRET;
 
   if (!scriptUrl) {
     throw new Error('GOOGLE_APPS_SCRIPT_URL is not configured in Vercel Environment Variables.');
   }
+
+  // Build a single readable "Lead Source" label for the sheet
+  let leadSource = utm_source || '';
+  if (utm_medium) leadSource += (leadSource ? ' / ' : '') + utm_medium;
+  if (utm_campaign) leadSource += (leadSource ? ' / ' : '') + utm_campaign;
+  if (!leadSource && referrer) {
+    try { leadSource = new URL(referrer).hostname; } catch { leadSource = referrer.slice(0, 60); }
+  }
+  if (!leadSource) leadSource = 'Direct';
 
   const payload = {
     action: 'register',
@@ -32,6 +45,14 @@ async function saveRegistrationToGoogleSheets({ registrationId, name, email, pho
     phoneNumber: phone,
     paymentStatus: 'Pending',
     status: 'Pending',
+    // UTM / lead source columns
+    leadSource,
+    utm_source,
+    utm_medium,
+    utm_campaign,
+    utm_term,
+    utm_content,
+    referrer,
     secret: secret || '',
     ingestSecret: secret || ''
   };
