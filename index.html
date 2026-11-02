@@ -2934,6 +2934,13 @@
 
           trackVA('Payment Initiated', { registration_id: data.registrationId });
 
+          // Meta Pixel: Track Lead event upon successful form completion
+          try {
+            if (typeof fbq === 'function') {
+              fbq('track', 'Lead');
+            }
+          } catch (fbErr) { }
+
           // Render registration summary
           const summaryHtml = `
       <div style="font-size:14px;color:#eee;line-height:1.5">${formData.fullName} · ${formData.email} · ${formData.phone} · ${formData.city}</div>
