@@ -21,7 +21,7 @@ module.exports = async function handler(req, res) {
 
     if (!configuredPassword) {
       return res.status(503).json({
-        error: 'ADMIN_PASSWORD environment variable is not configured on Vercel.',
+        error: 'ADMIN_PASSWORD environment variable is not configured in environment variables.',
         code: 'ADMIN_PW_NOT_CONFIGURED'
       });
     }

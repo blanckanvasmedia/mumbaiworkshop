@@ -49,13 +49,13 @@ module.exports = async function handler(req, res) {
     // 2. Check Google Apps Script configuration
     if (!process.env.GOOGLE_APPS_SCRIPT_URL) {
       return res.status(503).json({
-        error: 'Registration backend not configured. Missing GOOGLE_APPS_SCRIPT_URL in Vercel.',
+        error: 'Registration backend not configured. Missing GOOGLE_APPS_SCRIPT_URL in environment variables.',
         code: 'APPS_SCRIPT_NOT_CONFIGURED'
       });
     }
 
     const registrationId = generateRegistrationId();
-    const workshopFeeINR = 999;
+    const workshopFeeINR = Number(process.env.WORKSHOP_FEE_INR) || 999;
 
     // 3. Save student details to Google Sheets through Apps Script with status Pending
     // Check response for success BEFORE proceeding to payment
@@ -123,7 +123,7 @@ module.exports = async function handler(req, res) {
       success:      true,
       mode:         'fallback_link',
       registrationId,
-      fallbackUrl:  'https://rzp.io/rzp/NrwSNBZG',
+      fallbackUrl:  process.env.RAZORPAY_FALLBACK_URL || 'https://rzp.io/rzp/NrwSNBZG',
       amount:       workshopFeeINR,
       currency:     'INR',
       message:      'Registration saved in Google Sheets. Razorpay keys not yet configured — using shared payment link.'

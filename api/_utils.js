@@ -23,7 +23,7 @@ async function saveRegistrationToGoogleSheets({
   const secret = process.env.GOOGLE_SHEETS_INGEST_SECRET;
 
   if (!scriptUrl) {
-    throw new Error('GOOGLE_APPS_SCRIPT_URL is not configured in Vercel Environment Variables.');
+    throw new Error('GOOGLE_APPS_SCRIPT_URL is not configured in environment variables.');
   }
 
   // Build a single clean "Lead Source" label (e.g. "Instagram Ads", "Facebook", "Google Ads")

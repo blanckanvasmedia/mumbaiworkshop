@@ -2,8 +2,18 @@
   "name": "bk-edu-mumbai-workshop",
   "version": "1.0.0",
   "private": true,
-  "description": "BK EDU by Minaaz Mumbai Mega Workshop Registration System with Google Sheets & Razorpay",
+  "description": "BK EDU by Minaaz Mumbai Mega Workshop Node.js Application (GoDaddy & Express)",
+  "main": "server.js",
   "scripts": {
-    "start": "npx serve ."
+    "start": "node server.js",
+    "build": "node -e \"console.log('Build complete')\""
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
